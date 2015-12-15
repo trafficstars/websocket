@@ -1,4 +1,4 @@
-// Copyright 2014 The Gorilla WebSocket Authors. All rights reserved.
+// Copyright 2014-2015 The Gorilla WebSocket Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var tokenListContainsValueTests = []struct {
+var headerListContainsValueTests = []struct {
 	value string
 	ok    bool
 }{
@@ -23,12 +23,12 @@ var tokenListContainsValueTests = []struct {
 	{"other, websocket, more", true},
 }
 
-func TestTokenListContainsValue(t *testing.T) {
-	for _, tt := range tokenListContainsValueTests {
+func TestHeaderListContainsValue(t *testing.T) {
+	for _, tt := range headerListContainsValueTests {
 		h := http.Header{"Upgrade": {tt.value}}
-		ok := tokenListContainsValue(h, "Upgrade", "websocket")
+		ok := headerListContainsValue(h, "Upgrade", "websocket")
 		if ok != tt.ok {
-			t.Errorf("tokenListContainsValue(h, n, %q) = %v, want %v", tt.value, ok, tt.ok)
+			t.Errorf("headerListContainsValue(h, n, %q) = %v, want %v", tt.value, ok, tt.ok)
 		}
 	}
 }
