@@ -98,7 +98,8 @@ func nextToken(s string) (token, rest string) {
 
 func nextTokenOrQuoted(s string) (value string, rest string) {
 	if !strings.HasPrefix(s, "\"") {
-		return nextToken(s)
+		v, r := nextToken(s)
+		return v, r
 	}
 	s = s[1:]
 	for i := 0; i < len(s); i++ {
@@ -131,28 +132,36 @@ func nextTokenOrQuoted(s string) (value string, rest string) {
 	return "", ""
 }
 
+// tokenContainsValue takes a string and tokenizes it, checking
+// to see if any of the values match a value, returning true if so,
+// false otherwise
+func tokenContainsValue(token string, value string) bool {
+	for {
+		var t string
+		t, token = nextToken(skipSpace(token))
+		if t == "" {
+			return false
+		}
+		token = skipSpace(token)
+		if token != "" && token[0] != ',' {
+			return false
+		}
+		if strings.EqualFold(t, value) {
+			return true
+		}
+		if token == "" {
+			return false
+		}
+		token = token[1:]
+	}
+}
+
 // tokenListContainsValue returns true if the 1#token header with the given
 // name contains token.
 func tokenListContainsValue(header http.Header, name string, value string) bool {
-headers:
 	for _, s := range header[name] {
-		for {
-			var t string
-			t, s = nextToken(skipSpace(s))
-			if t == "" {
-				continue headers
-			}
-			s = skipSpace(s)
-			if s != "" && s[0] != ',' {
-				continue headers
-			}
-			if strings.EqualFold(t, value) {
-				return true
-			}
-			if s == "" {
-				continue headers
-			}
-			s = s[1:]
+		if tokenContainsValue(s, value) {
+			return true
 		}
 	}
 	return false

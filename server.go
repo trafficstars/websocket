@@ -122,11 +122,11 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 		return u.returnError(w, r, http.StatusBadRequest, "websocket: version != 13")
 	}
 
-	if !headerListContainsValue(r.Header, "Connection", "upgrade") {
+	if !tokenListContainsValue(r.Header, "Connection", "upgrade") {
 		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find connection header with token 'upgrade'")
 	}
 
-	if !headerListContainsValue(r.Header, "Upgrade", "websocket") {
+	if !tokenListContainsValue(r.Header, "Upgrade", "websocket") {
 		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find upgrade header with token 'websocket'")
 	}
 
@@ -278,6 +278,6 @@ func subprotocolsFromHeader(header string) []string {
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
 func IsWebSocketUpgrade(r *http.Request) bool {
-	return tokenListContainsValue(r.Header.Get("Connection"), "upgrade") &&
-		tokenListContainsValue(r.Header.Get("Upgrade"), "websocket")
+	return tokenListContainsValue(r.Header, "Connection", "upgrade") &&
+		tokenListContainsValue(r.Header, "Upgrade", "websocket")
 }
