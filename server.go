@@ -59,6 +59,7 @@ func (u *Upgrader) returnError(w http.ResponseWriter, r *http.Request, status in
 	if u.Error != nil {
 		u.Error(w, r, status, err)
 	} else {
+		w.Header().Set("Sec-Websocket-Version", "13")
 		http.Error(w, http.StatusText(status), status)
 	}
 	return nil, err
@@ -117,15 +118,15 @@ func (u *Upgrader) Upgrade(w http.ResponseWriter, r *http.Request, responseHeade
 	if r.Method != "GET" {
 		return u.returnError(w, r, http.StatusMethodNotAllowed, "websocket: method not GET")
 	}
-	if values := r.Header["Sec-Websocket-Version"]; len(values) == 0 || values[0] != websocketVersion {
-		return u.returnError(w, r, http.StatusBadRequest, "websocket: version !="+websocketVersion)
+	if !tokenListContainsValue(r.Header, "Sec-Websocket-Version", "13") {
+		return u.returnError(w, r, http.StatusBadRequest, "websocket: version != 13")
 	}
 
-	if !headerListContainsValue(r.Header, "Connection", "upgrade") {
+	if !tokenListContainsValue(r.Header, "Connection", "upgrade") {
 		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find connection header with token 'upgrade'")
 	}
 
-	if !headerListContainsValue(r.Header, "Upgrade", "websocket") {
+	if !tokenListContainsValue(r.Header, "Upgrade", "websocket") {
 		return u.returnError(w, r, http.StatusBadRequest, "websocket: could not find upgrade header with token 'websocket'")
 	}
 
@@ -277,6 +278,6 @@ func subprotocolsFromHeader(header string) []string {
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
 func IsWebSocketUpgrade(r *http.Request) bool {
-	return tokenListContainsValue(r.Header.Get("Connection"), "upgrade") &&
-		tokenListContainsValue(r.Header.Get("Upgrade"), "websocket")
+	return tokenListContainsValue(r.Header, "Connection", "upgrade") &&
+		tokenListContainsValue(r.Header, "Upgrade", "websocket")
 }

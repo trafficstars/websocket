@@ -17,6 +17,23 @@ func checkSameOriginFastHTTP(ctx *fasthttp.RequestCtx) bool {
 	return checkSameOriginFromHeaderAndHost(string(ctx.Request.Header.Peek(originHeader)), string(ctx.Host()))
 }
 
+func fastHTTPHeaderContainsValue(hdr fasthttp.RequestHeader, header string, value string) bool {
+	result := false
+	matchKey := []byte(header)
+	hdr.VisitAll(func(key []byte, val []byte) {
+		if !result {
+			if bytes.Equal(key, matchKey) {
+				headerValue := string(val)
+				if tokenContainsValue(headerValue, value) {
+					result = true
+				}
+			}
+		}
+	})
+
+	return result
+}
+
 // FastHTTPUpgrader is used to upgrade a fasthttp request into a websocket
 // connection. A Handler function must be provided to receive that connection.
 type FastHTTPUpgrader struct {
@@ -67,12 +84,12 @@ func (f *FastHTTPUpgrader) UpgradeHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	if !ctx.Request.Header.ConnectionUpgrade() {
+	if !fastHTTPHeaderContainsValue(ctx.Request.Header, "Connection", "upgrade") {
 		ctx.Error("websocket: could not find connection header with token 'upgrade'", fasthttp.StatusBadRequest)
 		return
 	}
 
-	if !tokenListContainsValue(string(ctx.Request.Header.Peek("Upgrade")), "websocket") {
+	if !fastHTTPHeaderContainsValue(ctx.Request.Header, "Upgrade", "websocket") {
 		ctx.Error("websocket: could not find upgrade header with token 'websocket'", fasthttp.StatusBadRequest)
 		return
 	}
