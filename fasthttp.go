@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"net"
 
-	"github.com/valyala/fasthttp"
+	"github.com/trafficstars/fasthttp"
 )
 
 func checkSameOriginFastHTTP(ctx *fasthttp.RequestCtx) bool {
